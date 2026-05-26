@@ -106,39 +106,22 @@
       background: rgba(0,0,0,0.22);
     }
 
-    /* ── MARQUEE TEXT ON HERO ── */
+    /* ── WAVE CANVAS ── */
     .hero-marquee-wrap {
       position: absolute;
       top: 50%;
       left: 0;
       transform: translateY(-50%);
       width: 100%;
-      overflow-x: clip;
-      overflow-y: visible;
+      height: 370px;
       z-index: 2;
       pointer-events: none;
-      padding: 2rem 0 3rem;
     }
 
-    .hero-marquee-track {
-      display: flex;
-      width: max-content;
-      align-items: baseline;
-    }
-
-    .hero-marquee-track > span {
-      font-family: 'Shrikhand', cursive;
-      font-size: clamp(3.5rem, 9vw, 8rem);
-      color: var(--lime);
-      white-space: nowrap;
-      padding-right: 1.5rem;
-    }
-
-    .wl {
-      display: inline-block;
-      will-change: transform;
-      backface-visibility: hidden;
-      white-space: pre;
+    #waveCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     /* ── TICKER BAND ── */
@@ -313,22 +296,8 @@
 <!-- ── HERO ── -->
 <section class="hero">
   <img class="hero-img" src="images/images.jpg" alt="Bateaux de pêche au coucher du soleil" />
-
   <div class="hero-marquee-wrap">
-    <div class="hero-marquee-track" id="marqueeTrack">
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
-    </div>
+    <canvas id="waveCanvas"></canvas>
   </div>
 </section>
 
@@ -469,73 +438,154 @@
 
   function applyLang() {
     var fr = currentLang === 'fr';
-
     document.getElementById('nav-about').textContent = fr ? 'À propos' : 'About';
-
     document.getElementById('apropos-title').textContent = fr ? 'À propos' : 'About';
     document.getElementById('apropos-text').textContent = fr
       ? "Éve et Gab, c'est une marque née du bord de mer, des quais de pêche et de l'amour du grand air. Chaque pièce est conçue avec soin pour ceux qui vivent dehors."
       : "Éve et Gab is a brand born from the seaside, fishing wharves, and a love of the great outdoors. Each piece is crafted with care for those who live outside.";
-
     document.querySelectorAll('[data-fr][data-en]').forEach(function (el) {
       el.textContent = fr ? el.getAttribute('data-fr') : el.getAttribute('data-en');
     });
   }
 
-  // ── WAVE MARQUEE ──
+  // ── WAVE CANVAS ──
   document.addEventListener('DOMContentLoaded', function () {
-    var track = document.getElementById('marqueeTrack');
+    var canvas = document.getElementById('waveCanvas');
+    var ctx    = canvas.getContext('2d');
+    var wrap   = document.querySelector('.hero-marquee-wrap');
 
-    Array.from(track.querySelectorAll('span')).forEach(function (span) {
-      var chars = Array.from(span.textContent);
-      span.textContent = '';
-      chars.forEach(function (char) {
-        var el = document.createElement('span');
-        el.className = 'wl';
-        el.textContent = char === ' ' ? ' ' : char;
-        span.appendChild(el);
-      });
-    });
+    // Pre-load the flag image
+    var flagImg = new Image();
+    flagImg.src = 'images/Drapeau.svg';
 
-    var letters = Array.from(track.querySelectorAll('.wl'));
+    var animFrame = null;
 
-    requestAnimationFrame(function () {
-      var trackLeft = track.getBoundingClientRect().left;
-      var positions = letters.map(function (l) {
-        return l.getBoundingClientRect().left - trackLeft;
-      });
-      var halfWidth = track.scrollWidth / 2;
+    function getFontSize() {
+      // mirrors CSS clamp(3.5rem, 9vw, 8rem) at 16px base
+      var vw9 = window.innerWidth * 0.09;
+      return Math.max(56, Math.min(128, vw9));
+    }
+
+    function startWave() {
+      if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+
+      // Size canvas at device pixel ratio for crisp text
+      var dpr = window.devicePixelRatio || 1;
+      var W   = wrap.offsetWidth;
+      var H   = wrap.offsetHeight;
+      canvas.width  = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      var fontSize = getFontSize();
+      ctx.font         = '400 ' + fontSize + 'px Shrikhand';
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign    = 'left';
+
+      // Pre-measure every character in the repeating unit
+      var rawText    = 'Éve et Gab';
+      var chars      = Array.from(rawText);
+      var charWidths = chars.map(function (c) { return ctx.measureText(c).width; });
+      var textWidth  = charWidths.reduce(function (a, b) { return a + b; }, 0);
+
+      // Flag dimensions: same proportional height as the old emoji (0.5em)
+      var flagH  = fontSize * 0.5;
+      var flagAR = (flagImg.naturalWidth && flagImg.naturalHeight)
+                   ? flagImg.naturalWidth / flagImg.naturalHeight
+                   : 1.6;
+      var flagW  = flagH * flagAR;
+
+      // Double space on each side of the flag
+      var sideGap   = ctx.measureText(' ').width * 2;
+      var unitWidth = textWidth + sideGap + flagW + sideGap;
 
       var wavelength = 1200;
       var amplitude  = 100;
-      var speed      = halfWidth / 76;
+      // Push centerY down so ascenders at the wave peak never clip the canvas top.
+      // Shrikhand cap-height ≈ 0.82 × fontSize above the alphabetic baseline.
+      var centerY    = Math.max(H / 2, amplitude + Math.ceil(fontSize * 0.85));
+
+      // Preserve the same visual speed as the original DOM marquee (76-second half-loop)
+      var speed = 6 * unitWidth / 76;
 
       var xOffset  = 0;
       var lastTime = null;
 
-      function animate(ts) {
-        if (lastTime === null) lastTime = ts;
+      function frame(ts) {
+        if (!lastTime) lastTime = ts;
         var dt = Math.min((ts - lastTime) / 1000, 0.05);
         lastTime = ts;
 
         xOffset -= speed * dt;
-        if (xOffset <= -halfWidth) xOffset += halfWidth;
+        if (xOffset <= -unitWidth) xOffset += unitWidth;
 
-        track.style.transform = 'translate3d(' + xOffset + 'px,0,0)';
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle    = '#e3ffa0';
+        ctx.font         = '400 ' + fontSize + 'px Shrikhand';
+        ctx.textBaseline = 'alphabetic';
 
-        for (var i = 0; i < letters.length; i++) {
-          var x     = positions[i] + xOffset;
-          var phase = (x / wavelength) * Math.PI * 2;
-          var y     = Math.sin(phase) * amplitude;
-          var slope = amplitude * (Math.PI * 2 / wavelength) * Math.cos(phase);
-          var angle = Math.atan(slope) * 180 / Math.PI;
-          letters[i].style.transform = 'translate3d(0,' + y + 'px,0) rotate(' + angle + 'deg)';
+        // Draw enough units to fill the canvas plus one unit on each side as buffer
+        var numUnits = Math.ceil(W / unitWidth) + 2;
+
+        for (var u = -1; u < numUnits; u++) {
+          var cx = u * unitWidth + xOffset;
+
+          // ── characters ──
+          for (var i = 0; i < chars.length; i++) {
+            var cw    = charWidths[i];
+            var cx_c  = cx + cw / 2;                               // horizontal centre of char
+            var phase = (cx_c / wavelength) * Math.PI * 2;
+            var y     = centerY + Math.sin(phase) * amplitude;
+            var slope = amplitude * (Math.PI * 2 / wavelength) * Math.cos(phase);
+            var angle = Math.atan(slope);
+
+            ctx.save();
+            ctx.translate(cx_c, y);
+            ctx.rotate(angle);
+            ctx.fillText(chars[i], -cw / 2, 0);
+            ctx.restore();
+
+            cx += cw;
+          }
+
+          // ── flag ──
+          if (flagImg.complete && flagImg.naturalHeight > 0) {
+            var fx      = cx + sideGap + flagW / 2;               // horizontal centre of flag (skip pre-gap)
+            var fphase  = (fx / wavelength) * Math.PI * 2;
+            var fy      = centerY + Math.sin(fphase) * amplitude;
+            var fslope  = amplitude * (Math.PI * 2 / wavelength) * Math.cos(fphase);
+            var fangle  = Math.atan(fslope);
+            var capMid  = -fontSize * 0.38;                        // approx mid cap-height above baseline
+
+            ctx.save();
+            ctx.translate(fx, fy);
+            ctx.rotate(fangle);
+            ctx.drawImage(flagImg, -flagW / 2, capMid - flagH / 2, flagW, flagH);
+            ctx.restore();
+          }
         }
 
-        requestAnimationFrame(animate);
+        animFrame = requestAnimationFrame(frame);
       }
 
-      requestAnimationFrame(animate);
+      animFrame = requestAnimationFrame(frame);
+    }
+
+    // Wait for Shrikhand and the flag before measuring anything
+    var fontReady = (typeof document.fonts !== 'undefined')
+      ? document.fonts.load('400 100px Shrikhand')
+      : Promise.resolve();
+    var imgReady = new Promise(function (resolve) {
+      if (flagImg.complete) { resolve(); return; }
+      flagImg.onload  = resolve;
+      flagImg.onerror = resolve;
+    });
+
+    Promise.all([fontReady, imgReady]).then(function () {
+      startWave();
+      window.addEventListener('resize', startWave);
     });
   });
 </script>
