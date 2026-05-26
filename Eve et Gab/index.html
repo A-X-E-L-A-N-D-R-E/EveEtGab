@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Éve et Gab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Bitter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:   #e3ffa0;
+      --purple: #8075ff;
+      --dark:   #111;
+      --white:  #fff;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Bitter', serif; background: #f5f0e8; color: var(--dark); overflow-x: hidden; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--lime);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 52px;
+    }
+
+    nav a { text-decoration: none; color: var(--purple); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.03em; }
+    nav a:hover { opacity: 0.55; }
+
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Shrikhand', cursive;
+      font-size: 1.5rem;
+      color: var(--purple);
+      white-space: nowrap;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .lang-btn {
+      background: none;
+      border: 2px solid var(--purple);
+      border-radius: 6px;
+      color: var(--purple);
+      font-family: 'Bitter', serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 0.18rem 0.55rem;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lang-btn:hover { background: var(--purple); color: var(--lime); }
+
+    .cart-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: 'Bitter', serif;
+      color: var(--purple);
+    }
+    .cart-btn svg { width: 22px; height: 22px; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      height: 80svh;
+      min-height: 400px;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.22);
+    }
+
+    /* ── MARQUEE TEXT ON HERO ── */
+    .hero-marquee-wrap {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      width: 100%;
+      overflow-x: clip;
+      overflow-y: visible;
+      z-index: 2;
+      pointer-events: none;
+      padding: 2rem 0 3rem;
+    }
+
+    .hero-marquee-track {
+      display: flex;
+      width: max-content;
+      align-items: baseline;
+    }
+
+    .hero-marquee-track > span {
+      font-family: 'Shrikhand', cursive;
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      color: var(--lime);
+      white-space: nowrap;
+      padding-right: 1.5rem;
+    }
+
+    .wl {
+      display: inline-block;
+      will-change: transform;
+      backface-visibility: hidden;
+      white-space: pre;
+    }
+
+    /* ── TICKER BAND ── */
+    .ticker {
+      background: var(--purple);
+      overflow: hidden;
+      padding: 1.2rem 0;
+      white-space: nowrap;
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: ticker 68s linear infinite;
+    }
+
+    .ticker-track span {
+      font-family: 'Shrikhand', cursive;
+      font-size: 3.5rem;
+      color: var(--lime);
+      padding: 0 1.5rem;
+    }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── SECTION SHARED ── */
+    .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+
+    /* ── CAROUSEL ── */
+    .carousel-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 1.5rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      flex: 1;
+    }
+
+    .carousel-track::-webkit-scrollbar { display: none; }
+
+    .carousel-track .product-card {
+      flex: 0 0 260px;
+      scroll-snap-align: start;
+    }
+
+    .carousel-btn {
+      background: var(--purple);
+      color: var(--lime);
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.15s;
+    }
+
+    .carousel-btn:hover { opacity: 0.75; }
+
+    /* ── PRODUCT GRID ── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--white);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+    }
+
+    .product-img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      background: #e8e4da;
+      display: block;
+      padding: 1.2rem;
+    }
+
+    .product-info { padding: 1rem 1.2rem 1.4rem; }
+
+    .product-name {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .product-price {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 1rem;
+    }
+
+    .btn-add {
+      width: 100%;
+      background: var(--lime);
+      border: 2px solid var(--dark);
+      border-radius: 8px;
+      padding: 0.55rem 0;
+      font-family: 'Bitter', serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-add:hover { background: #cdf080; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      color: #aaa;
+      text-align: center;
+      padding: 2rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    footer .footer-brand {
+      font-family: 'Shrikhand', cursive;
+      color: var(--lime);
+      font-size: 1.8rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="#apropos" id="nav-about">À propos</a>
+  <span class="nav-brand" style="font-size:1.1rem;">Des hardes par Éve et Gab</span>
+  <div class="nav-right">
+    <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
+    <button class="cart-btn" aria-label="Panier">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      0
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <img class="hero-img" src="images/images.jpg" alt="Bateaux de pêche au coucher du soleil" />
+
+  <div class="hero-marquee-wrap">
+    <div class="hero-marquee-track" id="marqueeTrack">
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+      <span>Éve et Gab &nbsp;<span style="font-size:0.5em">⭐🟦⬜🟥</span>&nbsp;</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── CHEMISES TICKER ── -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" style="animation-direction: reverse;">
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+    <span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span><span>Chemises</span><span>👕</span>
+  </div>
+</div>
+
+<!-- ── SHIRTS ── -->
+<div id="chandails" style="background: #f0ece2;">
+  <div class="section">
+    <div class="product-grid">
+
+      <div class="product-card">
+        <img class="product-img" src="images/tournee_beige.png" alt="Tournée beige" />
+        <div class="product-info">
+          <div class="product-name" data-fr="Tournée beige" data-en="World Tour Beige">Tournée beige</div>
+          <div class="product-price" data-fr="45,00 $" data-en="$45.00">45,00 $</div>
+          <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-img" src="images/tournee_noir.png" alt="Tournée noir" />
+        <div class="product-info">
+          <div class="product-name" data-fr="Tournée noir" data-en="World Tour Noir">Tournée noir</div>
+          <div class="product-price" data-fr="45,00 $" data-en="$45.00">45,00 $</div>
+          <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── CALOTTES TICKER ── -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+    <span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span><span>Calottes</span><span>🤠</span>
+  </div>
+</div>
+
+<!-- ── HATS ── -->
+<div id="calottes">
+  <div class="section">
+    <div class="carousel-wrap">
+      <button class="carousel-btn" onclick="document.getElementById('hat-track').scrollBy({left:-290,behavior:'smooth'})">&#8249;</button>
+      <div class="carousel-track" id="hat-track">
+
+        <div class="product-card">
+          <img class="product-img" src="images/Chebec.png" alt="Calotte Chebec" />
+          <div class="product-info">
+            <div class="product-name">Chebec</div>
+            <div class="product-price" data-fr="35,00 $" data-en="$35.00">35,00 $</div>
+            <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <img class="product-img" src="images/Lile.png" alt="Calotte Lile" />
+          <div class="product-info">
+            <div class="product-name">Lile</div>
+            <div class="product-price" data-fr="38,00 $" data-en="$38.00">38,00 $</div>
+            <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <img class="product-img" src="images/Pubnico.png" alt="Calotte Pubnico" />
+          <div class="product-info">
+            <div class="product-name">Pubnico</div>
+            <div class="product-price" data-fr="40,00 $" data-en="$40.00">40,00 $</div>
+            <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <img class="product-img" src="images/Tousquet.png" alt="Calotte Tousquet" />
+          <div class="product-info">
+            <div class="product-name">Tousquet</div>
+            <div class="product-price" data-fr="38,00 $" data-en="$38.00">38,00 $</div>
+            <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <img class="product-img" src="images/Wedgeport.png" alt="Calotte Wedgeport" />
+          <div class="product-info">
+            <div class="product-name">Wedgeport</div>
+            <div class="product-price" data-fr="35,00 $" data-en="$35.00">35,00 $</div>
+            <button class="btn-add" data-fr="Ajouter au panier" data-en="Add to cart">Ajouter au panier</button>
+          </div>
+        </div>
+
+      </div>
+      <button class="carousel-btn" onclick="document.getElementById('hat-track').scrollBy({left:290,behavior:'smooth'})">&#8250;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── À PROPOS ── -->
+<div id="apropos" style="background: var(--purple); color: var(--white); padding: 4rem 2rem; text-align: center;">
+  <h2 id="apropos-title" style="font-family: 'Shrikhand', cursive; font-size: 2.5rem; color: var(--lime); margin-bottom: 1rem;">À propos</h2>
+  <p id="apropos-text" style="max-width: 600px; margin: 0 auto; font-size: 1.05rem; line-height: 1.7; opacity: 0.9;">
+    Éve et Gab, c'est une marque née du bord de mer, des quais de pêche et de l'amour du grand air.
+    Chaque pièce est conçue avec soin pour ceux qui vivent dehors.
+  </p>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <span class="footer-brand">Éve et Gab</span>
+  © 2026 Éve et Gab. Tous droits réservés.
+</footer>
+
+<script>
+  // ── LANGUAGE TOGGLE ──
+  var currentLang = 'fr';
+
+  function toggleLang() {
+    currentLang = currentLang === 'fr' ? 'en' : 'fr';
+    document.documentElement.lang = currentLang;
+    document.getElementById('lang-toggle').textContent = currentLang === 'fr' ? 'EN' : 'FR';
+    applyLang();
+  }
+
+  function applyLang() {
+    var fr = currentLang === 'fr';
+
+    document.getElementById('nav-about').textContent = fr ? 'À propos' : 'About';
+
+    document.getElementById('apropos-title').textContent = fr ? 'À propos' : 'About';
+    document.getElementById('apropos-text').textContent = fr
+      ? "Éve et Gab, c'est une marque née du bord de mer, des quais de pêche et de l'amour du grand air. Chaque pièce est conçue avec soin pour ceux qui vivent dehors."
+      : "Éve et Gab is a brand born from the seaside, fishing wharves, and a love of the great outdoors. Each piece is crafted with care for those who live outside.";
+
+    document.querySelectorAll('[data-fr][data-en]').forEach(function (el) {
+      el.textContent = fr ? el.getAttribute('data-fr') : el.getAttribute('data-en');
+    });
+  }
+
+  // ── WAVE MARQUEE ──
+  document.addEventListener('DOMContentLoaded', function () {
+    var track = document.getElementById('marqueeTrack');
+
+    Array.from(track.querySelectorAll('span')).forEach(function (span) {
+      var chars = Array.from(span.textContent);
+      span.textContent = '';
+      chars.forEach(function (char) {
+        var el = document.createElement('span');
+        el.className = 'wl';
+        el.textContent = char === ' ' ? ' ' : char;
+        span.appendChild(el);
+      });
+    });
+
+    var letters = Array.from(track.querySelectorAll('.wl'));
+
+    requestAnimationFrame(function () {
+      var trackLeft = track.getBoundingClientRect().left;
+      var positions = letters.map(function (l) {
+        return l.getBoundingClientRect().left - trackLeft;
+      });
+      var halfWidth = track.scrollWidth / 2;
+
+      var wavelength = 1200;
+      var amplitude  = 100;
+      var speed      = halfWidth / 76;
+
+      var xOffset  = 0;
+      var lastTime = null;
+
+      function animate(ts) {
+        if (lastTime === null) lastTime = ts;
+        var dt = Math.min((ts - lastTime) / 1000, 0.05);
+        lastTime = ts;
+
+        xOffset -= speed * dt;
+        if (xOffset <= -halfWidth) xOffset += halfWidth;
+
+        track.style.transform = 'translate3d(' + xOffset + 'px,0,0)';
+
+        for (var i = 0; i < letters.length; i++) {
+          var x     = positions[i] + xOffset;
+          var phase = (x / wavelength) * Math.PI * 2;
+          var y     = Math.sin(phase) * amplitude;
+          var slope = amplitude * (Math.PI * 2 / wavelength) * Math.cos(phase);
+          var angle = Math.atan(slope) * 180 / Math.PI;
+          letters[i].style.transform = 'translate3d(0,' + y + 'px,0) rotate(' + angle + 'deg)';
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+    });
+  });
+</script>
+
+</body>
+</html>
